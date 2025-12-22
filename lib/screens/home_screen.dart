@@ -62,6 +62,7 @@ class _NamesDialog extends StatefulWidget {
 }
 
 class _NamesDialogState extends State<_NamesDialog> {
+  final players = ['Team 1 Player 1', 'Team 2 Player 1', 'Team 1 Player 2', 'Team 2 Player 2'];
   final controllers = List.generate(4, (_) => TextEditingController());
   @override
   Widget build(BuildContext context) {
@@ -71,7 +72,7 @@ class _NamesDialogState extends State<_NamesDialog> {
         children: List.generate(4, (i) => Padding(
           padding: const EdgeInsets.only(top: 8),
           child: CupertinoTextField(
-            placeholder: 'Player ${i+1}',
+            placeholder: players[i],
             controller: controllers[i],
           ),
         )),
