@@ -1,20 +1,45 @@
 
-name: Deploy Flutter Web to GH Pages
+# .github/workflows/deploy-pages.yml
+name: Deploy Flutter Web to GitHub Pages
+
 on:
   push:
-    branches: [ main ]
+    branches: [ main ]   # or your default branch
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write           # required for pages
+  id-token: write        # required by deploy-pages
+
 jobs:
-  build-deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
         with: { flutter-version: '3.38.3' }
-      - run: flutter config --enable-web
-      - run: flutter pub get
-      - run: flutter build web --release
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v3
+
+      - name: Build Web
+        run: |
+          flutter --version
+          flutter pub get
+          flutter build web --release
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: build/web
+          path: build/web
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
