@@ -26,7 +26,7 @@ jobs:
         run: |
           flutter --version
           flutter pub get
-          flutter build web --release
+          flutter build web --release --base-href /spades_flutter_app/
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
