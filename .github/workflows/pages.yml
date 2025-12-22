@@ -28,6 +28,9 @@ jobs:
           flutter pub get
           flutter build web --release --base-href /spades_flutter_app/
 
+      - name: Add CNAME for custom domain
+        run: echo spades.pvleeuwen.com > build/web/CNAME
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
