@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spades/widget/readonly_field.dart';
@@ -27,7 +28,7 @@ class _PlayScreenState extends ConsumerState<PlayScreen> {
     final g = ref.read(gamesProvider.notifier).byId(widget.gameId);
     if (g == null) {
       WidgetsBinding.instance.addPostFrameCallback(
-        (_) => Navigator.of(context).pop(),
+            (_) => Navigator.of(context).pop(),
       );
     } else {
       _game = g;
@@ -53,7 +54,7 @@ class _PlayScreenState extends ConsumerState<PlayScreen> {
         );
         _bagsCarry[team.id] =
             (_bagsCarry[team.id]! + breakdown.bags) -
-            (breakdown.penaltyBlocks * 10);
+                (breakdown.penaltyBlocks * 10);
       }
     }
     setState(() {});
@@ -115,29 +116,31 @@ class _PlayScreenState extends ConsumerState<PlayScreen> {
           children: [
             const SizedBox(height: 12),
             ..._game.hands.map(
-              (h) => _HandRow(
-                hand: h,
-                teams: teams,
-                players: players,
-                onChanged: (updated) async {
-                  final idx = _game.hands.indexWhere((x) => x.index == h.index);
-                  final newHands = [..._game.hands];
-                  newHands[idx] = updated;
-                  _game = _game.copyWith(
-                    hands: newHands,
-                    updatedAt: DateTime.now(),
-                  );
-                  setState(_recomputeCarryOver);
+                  (h) =>
+                  _HandRow(
+                    hand: h,
+                    teams: teams,
+                    players: players,
+                    onChanged: (updated) async {
+                      final idx = _game.hands.indexWhere((x) =>
+                      x.index == h.index);
+                      final newHands = [..._game.hands];
+                      newHands[idx] = updated;
+                      _game = _game.copyWith(
+                        hands: newHands,
+                        updatedAt: DateTime.now(),
+                      );
+                      setState(_recomputeCarryOver);
 
-                  await ref.read(repoProvider).upsertGame(_game);
-                  ref.read(gamesProvider.notifier).refresh();
-                },
-              ),
+                      await ref.read(repoProvider).upsertGame(_game);
+                      ref.read(gamesProvider.notifier).refresh();
+                    },
+                  ),
             ),
             const SizedBox(height: 12),
             CupertinoButton.filled(
               child: const Text('Add Hand'),
-              onPressed: () {
+              onPressed: () async {
                 final nextIndex = _game.hands.length + 1;
                 final newHand = Hand(
                   index: nextIndex,
@@ -161,6 +164,9 @@ class _PlayScreenState extends ConsumerState<PlayScreen> {
                   updatedAt: DateTime.now(),
                 );
                 setState(_recomputeCarryOver);
+
+                await ref.read(repoProvider).upsertGame(_game);
+                ref.read(gamesProvider.notifier).refresh();
               },
             ),
           ],
@@ -175,6 +181,12 @@ class _CumTotals {
   final int bags;
 
   const _CumTotals({required this.total, required this.bags});
+}
+
+enum Winner {
+  a,
+  b,
+  none
 }
 
 class _HandRow extends StatefulWidget {
@@ -207,26 +219,30 @@ class _HandRowState extends State<_HandRow> {
     handsWonPerTeam = List.generate(2, (i) => inputs[i].teamBooksWon);
     nilsPerTeam = List.generate(
       2,
-      (i) => List<bool>.from(inputs[i].nilAchieved),
+          (i) => List<bool>.from(inputs[i].nilAchieved),
     );
   }
 
   void _emit() {
     final inputs = List.generate(
       2,
-      (teamIdx) => TeamHandInput(
-        teamId: widget.teams[teamIdx].id,
-        teamBid: bidsPerTeam[teamIdx],
-        teamBooksWon: handsWonPerTeam[teamIdx],
-        nilAchieved: nilsPerTeam[teamIdx],
-      ),
+          (teamIdx) =>
+          TeamHandInput(
+            teamId: widget.teams[teamIdx].id,
+            teamBid: bidsPerTeam[teamIdx],
+            teamBooksWon: handsWonPerTeam[teamIdx],
+            nilAchieved: nilsPerTeam[teamIdx],
+          ),
     );
     widget.onChanged(Hand(index: widget.hand.index, teamInputs: inputs));
   }
 
   List<String> formatTotalsAndBags(_CumTotals a, _CumTotals b) {
     String plusBags(int n) => "+ ${n.abs()}";
-    return ["${a.total - a.bags} ${plusBags(a.bags % 10)}", "${b.total - b.bags} ${plusBags(b.bags % 10)}"];
+    return [
+      "${a.total - a.bags} ${plusBags(a.bags % 10)}",
+      "${b.total - b.bags} ${plusBags(b.bags % 10)}"
+    ];
   }
 
   @override
@@ -246,7 +262,10 @@ class _HandRowState extends State<_HandRow> {
         children: [
           Text(
             'Hand ${widget.hand.index}',
-            style: CupertinoTheme.of(context).textTheme.textStyle,
+            style: CupertinoTheme
+                .of(context)
+                .textTheme
+                .textStyle,
           ),
           const SizedBox(height: 8),
           _teamPanel()
@@ -262,6 +281,13 @@ class _HandRowState extends State<_HandRow> {
     final cumA = parent._cumulativeTotalsUpTo(widget.hand.index, teamA);
     final cumB = parent._cumulativeTotalsUpTo(widget.hand.index, teamB);
     final handLine = formatTotalsAndBags(cumA, cumB);
+    final Winner winner = (cumA.total >= 500 ||
+        ((cumA.total - cumB.total).abs() >= 500 && cumA.total > cumB.total))
+        ? Winner.a
+        : (cumB.total >= 500 ||
+        ((cumA.total - cumB.total).abs() >= 500 && cumB.total > cumA.total))
+        ? Winner.b
+        : Winner.none;
 
     return Container(
       padding: const EdgeInsets.all(8),
@@ -496,9 +522,19 @@ class _HandRowState extends State<_HandRow> {
             Row(
               children: [
                 const SizedBox(width: 120, child: Text('Score')),
-                Expanded(child: ReadonlyField(text: handLine[0])),
+                Expanded(child: ReadonlyField(
+                    text: handLine[0],
+                    backgroundColor: winner == Winner.a
+                        ? Colors.green
+                        : winner == Winner.b ? Colors.red : CupertinoColors
+                        .transparent)),
                 const SizedBox(width: 12),
-                Expanded(child: ReadonlyField(text: handLine[1]))
+                Expanded(child: ReadonlyField(
+                    text: handLine[1],
+                    backgroundColor: winner == Winner.b
+                        ? Colors.green
+                        : winner == Winner.a ? Colors.red : CupertinoColors
+                        .transparent))
               ],
             ),
         ],
