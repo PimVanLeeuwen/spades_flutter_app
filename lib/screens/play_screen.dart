@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:spades/widget/readonly_field.dart';
 
 import '../models.dart';
 import '../scoring.dart';
@@ -223,22 +224,13 @@ class _HandRowState extends State<_HandRow> {
     widget.onChanged(Hand(index: widget.hand.index, teamInputs: inputs));
   }
 
-  String formatTotalsAndBags(_CumTotals a, _CumTotals b) {
+  List<String> formatTotalsAndBags(_CumTotals a, _CumTotals b) {
     String plusBags(int n) => "+ ${n.abs()}";
-    return "${a.total - a.bags} ${plusBags(a.bags % 10)} / ${b.total - b.bags} ${plusBags(b.bags % 10)}";
+    return ["${a.total - a.bags} ${plusBags(a.bags % 10)}", "${b.total - b.bags} ${plusBags(b.bags % 10)}"];
   }
 
   @override
   Widget build(BuildContext context) {
-    final parent = context.findAncestorStateOfType<_PlayScreenState>()!;
-    final teamA = widget.teams[0].id;
-    final teamB = widget.teams[1].id;
-
-    final cumA = parent._cumulativeTotalsUpTo(widget.hand.index, teamA);
-    final cumB = parent._cumulativeTotalsUpTo(widget.hand.index, teamB);
-
-    final handLine = formatTotalsAndBags(cumA, cumB);
-
     return Container(
       margin: const EdgeInsets.only(top: 8),
       padding: const EdgeInsets.all(8),
@@ -257,29 +249,20 @@ class _HandRowState extends State<_HandRow> {
             style: CupertinoTheme.of(context).textTheme.textStyle,
           ),
           const SizedBox(height: 8),
-          _teamPanel(),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const SizedBox(width: 120, child: Text('Score')),
-              Align(
-                alignment: Alignment.center,
-                child: Text(
-                  handsWonPerTeam[0] + handsWonPerTeam[1] == 13 ? handLine : "",
-                  style: CupertinoTheme.of(
-                    context,
-                  ).textTheme.textStyle.copyWith(fontWeight: FontWeight.w600),
-                ),
-              )
-            ],
-          ),
-
+          _teamPanel()
         ],
       ),
     );
   }
 
   Widget _teamPanel() {
+    final parent = context.findAncestorStateOfType<_PlayScreenState>()!;
+    final teamA = widget.teams[0].id;
+    final teamB = widget.teams[1].id;
+    final cumA = parent._cumulativeTotalsUpTo(widget.hand.index, teamA);
+    final cumB = parent._cumulativeTotalsUpTo(widget.hand.index, teamB);
+    final handLine = formatTotalsAndBags(cumA, cumB);
+
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
@@ -507,6 +490,17 @@ class _HandRowState extends State<_HandRow> {
               ),
             ],
           ),
+
+          const SizedBox(height: 8),
+          if (handsWonPerTeam[0] + handsWonPerTeam[1] == 13)
+            Row(
+              children: [
+                const SizedBox(width: 120, child: Text('Score')),
+                Expanded(child: ReadonlyField(text: handLine[0])),
+                const SizedBox(width: 12),
+                Expanded(child: ReadonlyField(text: handLine[1]))
+              ],
+            ),
         ],
       ),
     );
