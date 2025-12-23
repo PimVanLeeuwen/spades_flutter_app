@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spades/widget/readonly_field.dart';
 
+import '../colors.dart';
 import '../models.dart';
 import '../scoring.dart';
 import '../state.dart';
@@ -28,7 +29,7 @@ class _PlayScreenState extends ConsumerState<PlayScreen> {
     final g = ref.read(gamesProvider.notifier).byId(widget.gameId);
     if (g == null) {
       WidgetsBinding.instance.addPostFrameCallback(
-            (_) => Navigator.of(context).pop(),
+        (_) => Navigator.of(context).pop(),
       );
     } else {
       _game = g;
@@ -54,7 +55,7 @@ class _PlayScreenState extends ConsumerState<PlayScreen> {
         );
         _bagsCarry[team.id] =
             (_bagsCarry[team.id]! + breakdown.bags) -
-                (breakdown.penaltyBlocks * 10);
+            (breakdown.penaltyBlocks * 10);
       }
     }
     setState(() {});
@@ -91,8 +92,12 @@ class _PlayScreenState extends ConsumerState<PlayScreen> {
 
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
-        middle: Text('${teams[0].name} vs ${teams[1].name}'),
+        middle: Text(
+          '${teams[0].name} vs ${teams[1].name}',
+          style: TextStyle(color: AppColors.textPrimary),
+        ),
         leading: CupertinoNavigationBarBackButton(
+          color: AppColors.textPrimary,
           onPressed: () async {
             _game = _game.copyWith(updatedAt: DateTime.now());
             await ref.read(repoProvider).upsertGame(_game);
@@ -102,7 +107,10 @@ class _PlayScreenState extends ConsumerState<PlayScreen> {
         ),
         trailing: CupertinoButton(
           padding: EdgeInsets.zero,
-          child: const Text('Save'),
+          child: const Text(
+            'Save',
+            style: TextStyle(color: AppColors.textPrimary),
+          ),
           onPressed: () async {
             _game = _game.copyWith(updatedAt: DateTime.now());
             await ref.read(repoProvider).upsertGame(_game);
@@ -116,30 +124,31 @@ class _PlayScreenState extends ConsumerState<PlayScreen> {
           children: [
             const SizedBox(height: 12),
             ..._game.hands.map(
-                  (h) =>
-                  _HandRow(
-                    hand: h,
-                    teams: teams,
-                    players: players,
-                    onChanged: (updated) async {
-                      final idx = _game.hands.indexWhere((x) =>
-                      x.index == h.index);
-                      final newHands = [..._game.hands];
-                      newHands[idx] = updated;
-                      _game = _game.copyWith(
-                        hands: newHands,
-                        updatedAt: DateTime.now(),
-                      );
-                      setState(_recomputeCarryOver);
+              (h) => _HandRow(
+                hand: h,
+                teams: teams,
+                players: players,
+                onChanged: (updated) async {
+                  final idx = _game.hands.indexWhere((x) => x.index == h.index);
+                  final newHands = [..._game.hands];
+                  newHands[idx] = updated;
+                  _game = _game.copyWith(
+                    hands: newHands,
+                    updatedAt: DateTime.now(),
+                  );
+                  setState(_recomputeCarryOver);
 
-                      await ref.read(repoProvider).upsertGame(_game);
-                      ref.read(gamesProvider.notifier).refresh();
-                    },
-                  ),
+                  await ref.read(repoProvider).upsertGame(_game);
+                  ref.read(gamesProvider.notifier).refresh();
+                },
+              ),
             ),
             const SizedBox(height: 12),
             CupertinoButton.filled(
-              child: const Text('Add Hand'),
+              child: const Text(
+                'Add Hand',
+                style: TextStyle(color: AppColors.textPrimary),
+              ),
               onPressed: () async {
                 final nextIndex = _game.hands.length + 1;
                 final newHand = Hand(
@@ -183,11 +192,7 @@ class _CumTotals {
   const _CumTotals({required this.total, required this.bags});
 }
 
-enum Winner {
-  a,
-  b,
-  none
-}
+enum Winner { a, b, none }
 
 class _HandRow extends StatefulWidget {
   final Hand hand;
@@ -219,20 +224,19 @@ class _HandRowState extends State<_HandRow> {
     handsWonPerTeam = List.generate(2, (i) => inputs[i].teamBooksWon);
     nilsPerTeam = List.generate(
       2,
-          (i) => List<bool>.from(inputs[i].nilAchieved),
+      (i) => List<bool>.from(inputs[i].nilAchieved),
     );
   }
 
   void _emit() {
     final inputs = List.generate(
       2,
-          (teamIdx) =>
-          TeamHandInput(
-            teamId: widget.teams[teamIdx].id,
-            teamBid: bidsPerTeam[teamIdx],
-            teamBooksWon: handsWonPerTeam[teamIdx],
-            nilAchieved: nilsPerTeam[teamIdx],
-          ),
+      (teamIdx) => TeamHandInput(
+        teamId: widget.teams[teamIdx].id,
+        teamBid: bidsPerTeam[teamIdx],
+        teamBooksWon: handsWonPerTeam[teamIdx],
+        nilAchieved: nilsPerTeam[teamIdx],
+      ),
     );
     widget.onChanged(Hand(index: widget.hand.index, teamInputs: inputs));
   }
@@ -241,7 +245,7 @@ class _HandRowState extends State<_HandRow> {
     String plusBags(int n) => "+ ${n.abs()}";
     return [
       "${a.total - a.bags} ${plusBags(a.bags % 10)}",
-      "${b.total - b.bags} ${plusBags(b.bags % 10)}"
+      "${b.total - b.bags} ${plusBags(b.bags % 10)}",
     ];
   }
 
@@ -251,24 +255,19 @@ class _HandRowState extends State<_HandRow> {
       margin: const EdgeInsets.only(top: 8),
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: CupertinoColors.systemGroupedBackground.resolveFrom(context),
+        color: AppColors.primary,
         borderRadius: BorderRadius.circular(10),
-        boxShadow: const [
-          BoxShadow(blurRadius: 2, color: CupertinoColors.systemGrey),
-        ],
+        boxShadow: const [BoxShadow(blurRadius: 2, color: AppColors.secondary)],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Hand ${widget.hand.index}',
-            style: CupertinoTheme
-                .of(context)
-                .textTheme
-                .textStyle,
+            style: TextStyle(color: AppColors.textPrimary),
           ),
           const SizedBox(height: 8),
-          _teamPanel()
+          _teamPanel(),
         ],
       ),
     );
@@ -281,18 +280,20 @@ class _HandRowState extends State<_HandRow> {
     final cumA = parent._cumulativeTotalsUpTo(widget.hand.index, teamA);
     final cumB = parent._cumulativeTotalsUpTo(widget.hand.index, teamB);
     final handLine = formatTotalsAndBags(cumA, cumB);
-    final Winner winner = (cumA.total >= 500 ||
-        ((cumA.total - cumB.total).abs() >= 500 && cumA.total > cumB.total))
+    final Winner winner =
+        (cumA.total >= 500 ||
+            ((cumA.total - cumB.total).abs() >= 500 && cumA.total > cumB.total))
         ? Winner.a
         : (cumB.total >= 500 ||
-        ((cumA.total - cumB.total).abs() >= 500 && cumB.total > cumA.total))
+              ((cumA.total - cumB.total).abs() >= 500 &&
+                  cumB.total > cumA.total))
         ? Winner.b
         : Winner.none;
 
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: CupertinoColors.systemBackground.resolveFrom(context),
+        color: AppColors.primary,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -304,32 +305,52 @@ class _HandRowState extends State<_HandRow> {
               SizedBox(width: 120),
               Expanded(
                 child: Text(
-                  widget.teams[0].name.split('/')[0].substring(0, 2),
-                  style: const TextStyle(fontWeight: FontWeight.w600),
+                  widget.teams[0].name.split('/')[0].length >= 2
+                      ? widget.teams[0].name.split('/')[0].substring(0, 2)
+                      : widget.teams[0].name.split('/')[0],
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  widget.teams[0].name.split('/')[1].substring(0, 2),
-                  style: const TextStyle(fontWeight: FontWeight.w600),
+                  widget.teams[0].name.split('/')[1].length >= 2
+                      ? widget.teams[0].name.split('/')[0].substring(0, 2)
+                      : widget.teams[0].name.split('/')[0],
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  widget.teams[1].name.split('/')[0].substring(0, 2),
-                  style: const TextStyle(fontWeight: FontWeight.w600),
+                  widget.teams[1].name.split('/')[0].length >= 2
+                      ? widget.teams[1].name.split('/')[0].substring(0, 2)
+                      : widget.teams[1].name.split('/')[0],
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  widget.teams[1].name.split('/')[1].substring(0, 2),
-                  style: const TextStyle(fontWeight: FontWeight.w600),
+                  widget.teams[1].name.split('/')[1].length >= 2
+                      ? widget.teams[1].name.split('/')[1].substring(0, 2)
+                      : widget.teams[1].name.split('/')[1],
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -342,7 +363,13 @@ class _HandRowState extends State<_HandRow> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const SizedBox(width: 120, child: Text('Bids')),
+              const SizedBox(
+                width: 120,
+                child: Text(
+                  'Bids',
+                  style: const TextStyle(color: AppColors.textPrimary),
+                ),
+              ),
               Expanded(
                 child: NumericStepper(
                   value: bidsPerTeam[0][0],
@@ -445,7 +472,13 @@ class _HandRowState extends State<_HandRow> {
 
           Row(
             children: [
-              SizedBox(width: 120, child: Text('Nil')),
+              SizedBox(
+                width: 120,
+                child: Text(
+                  'Nil',
+                  style: const TextStyle(color: AppColors.textPrimary),
+                ),
+              ),
               _nilPicker(0, 0),
               const SizedBox(width: 12),
               _nilPicker(0, 1),
@@ -460,7 +493,13 @@ class _HandRowState extends State<_HandRow> {
 
           Row(
             children: [
-              const SizedBox(width: 120, child: Text('Hands Won')),
+              const SizedBox(
+                width: 120,
+                child: Text(
+                  'Hands Won',
+                  style: const TextStyle(color: AppColors.textPrimary),
+                ),
+              ),
               Expanded(
                 // width: 70,
                 child: NumericStepper(
@@ -521,20 +560,34 @@ class _HandRowState extends State<_HandRow> {
           if (handsWonPerTeam[0] + handsWonPerTeam[1] == 13)
             Row(
               children: [
-                const SizedBox(width: 120, child: Text('Score')),
-                Expanded(child: ReadonlyField(
+                const SizedBox(
+                  width: 120,
+                  child: Text(
+                    'Score',
+                    style: const TextStyle(color: AppColors.textPrimary),
+                  ),
+                ),
+                Expanded(
+                  child: ReadonlyField(
                     text: handLine[0],
                     backgroundColor: winner == Winner.a
                         ? Colors.green
-                        : winner == Winner.b ? Colors.red : CupertinoColors
-                        .transparent)),
+                        : winner == Winner.b
+                        ? Colors.red
+                        : CupertinoColors.transparent,
+                  ),
+                ),
                 const SizedBox(width: 12),
-                Expanded(child: ReadonlyField(
+                Expanded(
+                  child: ReadonlyField(
                     text: handLine[1],
                     backgroundColor: winner == Winner.b
                         ? Colors.green
-                        : winner == Winner.a ? Colors.red : CupertinoColors
-                        .transparent))
+                        : winner == Winner.a
+                        ? Colors.red
+                        : CupertinoColors.transparent,
+                  ),
+                ),
               ],
             ),
         ],
