@@ -1,5 +1,6 @@
 // Simple Cupertino numeric stepper: min..max, step=1 by default
 import 'package:flutter/cupertino.dart';
+import 'package:spades/colors.dart';
 
 class NumericStepper extends StatelessWidget {
   final int value;
@@ -33,9 +34,7 @@ class NumericStepper extends StatelessWidget {
         child: Icon(
           icon,
           size: 20,
-          color: enabled
-              ? CupertinoColors.activeBlue.resolveFrom(context)
-              : CupertinoColors.inactiveGray.resolveFrom(context),
+          color: enabled ? AppColors.secondary : AppColors.textSecondary,
         ),
       );
     }
@@ -44,12 +43,9 @@ class NumericStepper extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: CupertinoColors.systemGrey6.resolveFrom(context),
+        color: AppColors.background,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: CupertinoColors.separator.resolveFrom(context),
-          width: 0.5,
-        ),
+        border: Border.all(color: AppColors.background, width: 0.5),
       ),
       padding: isHorizontal
           ? const EdgeInsets.symmetric(horizontal: 6, vertical: 4)
@@ -65,7 +61,7 @@ class NumericStepper extends StatelessWidget {
               ],
             )
           : Column(
-            mainAxisSize: MainAxisSize.min,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 pill(CupertinoIcons.plus, value < max, onIncrement),
                 Center(
