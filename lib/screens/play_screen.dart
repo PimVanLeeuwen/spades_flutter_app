@@ -92,6 +92,7 @@ class _PlayScreenState extends ConsumerState<PlayScreen> {
 
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
+        backgroundColor: AppColors.background,
         middle: Text(
           '${teams[0].name} vs ${teams[1].name}',
           style: TextStyle(color: AppColors.textPrimary),
@@ -319,8 +320,8 @@ class _HandRowState extends State<_HandRow> {
               Expanded(
                 child: Text(
                   widget.teams[0].name.split('/')[1].length >= 2
-                      ? widget.teams[0].name.split('/')[0].substring(0, 2)
-                      : widget.teams[0].name.split('/')[0],
+                      ? widget.teams[0].name.split('/')[1].substring(0, 2)
+                      : widget.teams[0].name.split('/')[1],
                   style: const TextStyle(
                     color: AppColors.textPrimary,
                     fontWeight: FontWeight.w600,
