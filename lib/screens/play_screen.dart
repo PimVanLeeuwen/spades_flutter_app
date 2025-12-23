@@ -574,7 +574,7 @@ class _HandRowState extends State<_HandRow> {
                         ? Colors.green
                         : winner == Winner.b
                         ? Colors.red
-                        : CupertinoColors.transparent,
+                        : AppColors.background,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -585,7 +585,7 @@ class _HandRowState extends State<_HandRow> {
                         ? Colors.green
                         : winner == Winner.a
                         ? Colors.red
-                        : CupertinoColors.transparent,
+                        : AppColors.background,
                   ),
                 ),
               ],

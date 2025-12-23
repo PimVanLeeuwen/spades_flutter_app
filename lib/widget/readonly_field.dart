@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:spades/colors.dart';
 
 /// Cupertino-themed read-only field that matches your stepper styling.
 class ReadonlyField extends StatelessWidget {
@@ -11,7 +12,7 @@ class ReadonlyField extends StatelessWidget {
     super.key,
     required this.text,
     this.textAlign = TextAlign.center,
-    this.backgroundColor = CupertinoColors.transparent,
+    this.backgroundColor = AppColors.background,
     this.padding = const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
   });
 
@@ -33,7 +34,11 @@ class ReadonlyField extends StatelessWidget {
       padding: padding,
       child: DefaultTextStyle.merge(
         style: textStyle,
-        child: Text(text, textAlign: textAlign),
+        child: Text(
+          text,
+          textAlign: textAlign,
+          style: TextStyle(color: AppColors.textPrimary),
+        ),
       ),
     );
   }
