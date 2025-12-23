@@ -2,6 +2,8 @@
 
 A Flutter project to learn Flutter and to keep track of the score in the game Spades that we do a lot. 
 
+The app can be found on: https://spades.pvleeuwen.com/
+
 ## Features
 
 *   **Game Management**: Create and manage multiple Spades games.
