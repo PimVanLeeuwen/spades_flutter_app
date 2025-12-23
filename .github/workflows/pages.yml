@@ -23,10 +23,15 @@ jobs:
         uses: subosito/flutter-action@v2
         with: { flutter-version: '3.38.3' }
 
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Run Tests
+        run: flutter test --no-pub --coverage
+
       - name: Build Web
         run: |
           flutter --version
-          flutter pub get
           flutter build web --release --base-href /
 
       - name: Add CNAME for custom domain
