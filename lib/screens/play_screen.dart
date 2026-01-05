@@ -368,7 +368,7 @@ class _HandRowState extends State<_HandRow> {
                 width: 120,
                 child: Text(
                   'Bids',
-                  style: const TextStyle(color: AppColors.textPrimary),
+                  style: TextStyle(color: AppColors.textPrimary),
                 ),
               ),
               Expanded(
@@ -498,7 +498,7 @@ class _HandRowState extends State<_HandRow> {
                 width: 120,
                 child: Text(
                   'Hands Won',
-                  style: const TextStyle(color: AppColors.textPrimary),
+                  style: TextStyle(color: AppColors.textPrimary),
                 ),
               ),
               Expanded(
@@ -565,7 +565,7 @@ class _HandRowState extends State<_HandRow> {
                   width: 120,
                   child: Text(
                     'Score',
-                    style: const TextStyle(color: AppColors.textPrimary),
+                    style: TextStyle(color: AppColors.textPrimary),
                   ),
                 ),
                 Expanded(
