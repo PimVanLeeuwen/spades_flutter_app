@@ -380,10 +380,14 @@ class _PlayScreenState extends ConsumerState<PlayScreen> {
     final team0Totals = _cumulativeTotalsUpTo(_game.hands.last.index, _game.teams[0].id);
     final team1Totals = _cumulativeTotalsUpTo(_game.hands.last.index, _game.teams[1].id);
 
-    // Determine winner based on Spades rules
+    // Win conditions (use displayed score = total minus bags):
+    // 1. Displayed score >= 500 AND strictly ahead
+    // 2. Lead of >= 500 points over opponent
     _Winner newWinner = _Winner.none;
-    final aWins = team0Totals.total >= 500 && team0Totals.total > team1Totals.total;
-    final bWins = team1Totals.total >= 500 && team1Totals.total > team0Totals.total;
+    final scoreA = team0Totals.total - team0Totals.bags;
+    final scoreB = team1Totals.total - team1Totals.bags;
+    final aWins = (scoreA >= 500 && scoreA > scoreB) || (scoreA - scoreB >= 500);
+    final bWins = (scoreB >= 500 && scoreB > scoreA) || (scoreB - scoreA >= 500);
 
     if (aWins) newWinner = _Winner.teamA;
     if (bWins) newWinner = _Winner.teamB;
@@ -682,12 +686,18 @@ class _HandCardState extends State<_HandCard> {
     final cumB = parent._cumulativeTotalsUpTo(widget.hand.index, teamB);
     final formattedScores = _formatTotals(cumA, cumB);
 
-    // Determine winner based on Spades rules
-    // Win condition: 500+ points AND at least 100 point lead
     final winner = _determineWinner(cumA, cumB);
 
     // Check if hand is complete (all 13 tricks accounted for)
     final isComplete = handsWonPerTeam[0] + handsWonPerTeam[1] == 13;
+
+    // Calculate overslagen (bags) earned this hand per team
+    final teamBidA = bidsPerTeam[0].reduce((a, b) => a + b);
+    final teamBidB = bidsPerTeam[1].reduce((a, b) => a + b);
+    final madeBidA = handsWonPerTeam[0] >= teamBidA;
+    final madeBidB = handsWonPerTeam[1] >= teamBidB;
+    final handBagsA = madeBidA ? handsWonPerTeam[0] - teamBidA : 0;
+    final handBagsB = madeBidB ? handsWonPerTeam[1] - teamBidB : 0;
 
     return Container(
       decoration: BoxDecoration(
@@ -734,9 +744,11 @@ class _HandCardState extends State<_HandCard> {
                 // Hands won row
                 _buildHandsWonRow(),
 
-                // Score display (only when hand is complete)
+                // Overslagen and score (only when hand is complete)
                 if (isComplete) ...[
                   const SizedBox(height: 12),
+                  _buildOverslagenRow(handBagsA, handBagsB),
+                  const SizedBox(height: 8),
                   _buildScoreRow(formattedScores, winner),
                 ],
               ],
@@ -749,11 +761,13 @@ class _HandCardState extends State<_HandCard> {
 
   /// Determines the winner based on current scores.
   _Winner _determineWinner(_CumTotals cumA, _CumTotals cumB) {
-    // Standard Spades win conditions:
-    // - Reach 500 points
-    // - Be ahead when reaching 500+
-    final aWins = cumA.total >= 500 && cumA.total > cumB.total;
-    final bWins = cumB.total >= 500 && cumB.total > cumA.total;
+    // Win conditions (use displayed score = total minus bags):
+    // 1. Displayed score >= 500 AND strictly ahead
+    // 2. Lead of >= 500 points over opponent
+    final scoreA = cumA.total - cumA.bags;
+    final scoreB = cumB.total - cumB.bags;
+    final aWins = (scoreA >= 500 && scoreA > scoreB) || (scoreA - scoreB >= 500);
+    final bWins = (scoreB >= 500 && scoreB > scoreA) || (scoreB - scoreA >= 500);
 
     if (aWins) return _Winner.teamA;
     if (bWins) return _Winner.teamB;
@@ -1047,6 +1061,32 @@ class _HandCardState extends State<_HandCard> {
               });
               _emit();
             },
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Builds the overslagen (bags) display row for this hand.
+  Widget _buildOverslagenRow(int bagsA, int bagsB) {
+    Color bagColor(int bags) => bags > 0
+        ? AppColors.warning.withValues(alpha: 0.3)
+        : AppColors.surfaceElevated;
+
+    return Row(
+      children: [
+        SizedBox(width: 80, child: _buildLabel('Overslagen')),
+        Expanded(
+          child: ReadonlyField(
+            text: '$bagsA',
+            backgroundColor: bagColor(bagsA),
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: ReadonlyField(
+            text: '$bagsB',
+            backgroundColor: bagColor(bagsB),
           ),
         ),
       ],
